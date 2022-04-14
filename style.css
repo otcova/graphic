@@ -1,0 +1,60 @@
+:root {
+	--color-a: hsl(210, 20%, 40%);
+	--color-b: #fff;
+}
+
+html,
+body {
+	background-color: var(--color-a);
+	font-size: 17px;
+	font-family: "Lucida Console", "Courier New", monospace;
+	margin: 0px;
+}
+
+.title {
+	color: #fff;
+	display: flex;
+	justify-content: center;
+	margin: 40px;
+	font-size: 1.3rem;
+}
+
+#window-container {
+	display: flex;
+	gap: 40px;
+	margin-bottom: 40px;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+
+.window {
+	background-color: var(--color-b);
+	width: calc(200px + 15vw);
+	height: calc(200px + 15vw);
+	padding: 30px;
+	cursor: pointer;
+	display: flex;
+	gap: 20px;
+	flex-direction: column;
+	align-items: flex-start;
+	justify-content: flex-end;
+}
+
+.header {
+	display: flex;
+	justify-content: center;
+	font-size: 1.2rem;
+}
+
+.text {
+	display: flex;
+	justify-content: center;
+	font-size: 1rem;
+}
+
+/* @media only screen and (max-width: 600px) {
+	.window {
+		width: 250px;
+		height: 250px;
+	}
+} */
