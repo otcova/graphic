@@ -124,6 +124,8 @@ function setColor(grphics, n) {
 }
 
 function updatePgMove() {
+	pgMoveFrame++;
+	
 	rvX = 0;
 	rvY = 0;
 
@@ -178,7 +180,7 @@ function setup() {
 }
 
 function draw() {
-	for (let i = 0; i < 2; i++) pgMoveFrame++; updatePgMove();
+	for (let i = 0; i < 2; i++) updatePgMove();
 	image(pgMove, 0, 0);
 	image(pgBack, 0, 0);
 
@@ -226,10 +228,12 @@ function touchEnded() {
 	return false;
 }
 
-function mouseReleased() {
-	mode = min(modes.length, max(0, mode + (mouseButton == LEFT ? 1 : -1)));
-	SetupMode();
-	setupEnviroment();
+function mouseReleased(event) {
+	if (event.target.className == "p5Canvas") {
+		mode = min(modes.length, max(0, mode + (mouseButton == LEFT ? 1 : -1)));
+		SetupMode();
+		setupEnviroment();
+	}
 }
 
 function windowResized() {
