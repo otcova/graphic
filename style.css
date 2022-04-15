@@ -31,6 +31,7 @@ body {
 	background-color: var(--color-b);
 	width: calc(200px + 15vw);
 	height: calc(200px + 15vw);
+	background-size: cover;
 	padding: 30px;
 	cursor: pointer;
 	display: flex;

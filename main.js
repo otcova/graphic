@@ -37,8 +37,9 @@ const container = document.getElementById("window-container")
 
 for (project of projects_info) {
 	const project_window = create_div("window", container)
-	const project_url = "./" + project.name.toLowerCase().replaceAll(" ", "-");
-	project_window.onclick = () => location.href = project_url;
+	const project_url = "./" + project.name.toLowerCase().replaceAll(" ", "-")
+	project_window.onclick = () => location.href = project_url
+	project_window.style.backgroundImage = "url('" + project_url + "/capture.gif')"
 	
 	const header = create_div("header", project_window)
 	header.innerText = project.name

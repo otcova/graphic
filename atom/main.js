@@ -55,11 +55,11 @@ let modes = [
 let mode = 0;
 let figuresIndex = 0;
 
-function SetupMode() {
+function setupMode() {
 	figuresIndex = 0;
 	let modesIndex = 0;
 
-	for (const [key, value] of map) {
+	for (const [key, _] of map) {
 		if (modesIndex < 10) map.set(key, modes[mode][modesIndex] == 1);
 		else map.set(key, modes[mode][modesIndex]);
 		modesIndex++;
@@ -125,7 +125,7 @@ function setColor(grphics, n) {
 
 function updatePgMove() {
 	pgMoveFrame++;
-	
+
 	rvX = 0;
 	rvY = 0;
 
@@ -162,6 +162,7 @@ function updatePgMove() {
 }
 
 function setupEnviroment() {
+	setupMode();
 	costats = map.get("costats");
 	r = min(height, width) / (2.3 + (map.get("drawResultDot") ? costats : 0));
 	costats = costats * 2 + 4;
@@ -175,7 +176,6 @@ function setup() {
 	createCanvas(windowWidth, windowHeight);
 	pgBack = createGraphics(width, height);
 	pgMove = createGraphics(width, height);
-	SetupMode();
 	setupEnviroment();
 }
 
@@ -223,25 +223,27 @@ function draw() {
 
 function touchEnded() {
 	mode = min(modes.length, max(0, mode + (mouseY < height / 2 ? 1 : -1)));
-	SetupMode();
 	setupEnviroment();
 	return false;
 }
 
-function mouseReleased(event) {
-	if (event.target.className == "p5Canvas") {
-		mode = min(modes.length, max(0, mode + (mouseButton == LEFT ? 1 : -1)));
-		SetupMode();
-		setupEnviroment();
-	}
+function mouseReleased() {
+	mode = min(modes.length, max(0, mode + (mouseButton == LEFT ? 1 : -1)));
+	setupEnviroment();
+}
+
+function keyPressed() {
+	if (key == "d" || key == "ArrowRight")
+		mode = min(modes.length, max(0, mode + 1));
+	else if (key == "a" || key == "ArrowLeft")
+		mode = min(modes.length, max(0, mode - 1));
+	setupEnviroment();
 }
 
 function windowResized() {
 	resizeCanvas(windowWidth, windowHeight);
 	pgBack = createGraphics(width, height);
 	pgMove = createGraphics(width, height);
-
-	SetupMode();
 	setupEnviroment();
 }
 document.oncontextmenu = function () {
