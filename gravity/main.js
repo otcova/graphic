@@ -1,7 +1,6 @@
 // types: sol, planeta, lluna
 let objs = [];
 let objsMemory = [
-
     [{
         x: 0,
         y: 0,
@@ -9,133 +8,133 @@ let objsMemory = [
         r: 50
     }],
     [{
-            x: -200,
-            y: 0,
-            move: false,
-            planet: true,
-            r: 20
-        },
-        {
-            x: 200,
-            y: 0,
-            move: false,
-            planet: true,
-            r: 20
-        }
+        x: -200,
+        y: 0,
+        move: false,
+        planet: true,
+        r: 20
+    },
+    {
+        x: 200,
+        y: 0,
+        move: false,
+        planet: true,
+        r: 20
+    }
     ],
     [{
-            x: -200,
-            y: 0,
-            vy: -5,
-            move: true,
-            planet: true,
-            r: 20
-        },
-        {
-            x: 200,
-            y: 0,
-            vy: 5,
-            move: true,
-            planet: true,
-            r: 20
-        }
+        x: -200,
+        y: 0,
+        vy: -5,
+        move: true,
+        planet: true,
+        r: 20
+    },
+    {
+        x: 200,
+        y: 0,
+        vy: 5,
+        move: true,
+        planet: true,
+        r: 20
+    }
     ],
 
     [{
-            x: -200,
-            y: 200,
-            vy: -5,
-            move: true,
-            planet: true,
-            r: 20,
-            tail: []
-        },
-        {
-            x: 0,
-            y: -200,
-            vx: 5,
-            vy: 2,
-            move: true,
-            planet: true,
-            r: 20,
-            tail: []
-        },
-        {
-            x: 200,
-            y: 200,
-            vx: -5,
-            vy: 3,
-            move: true,
-            planet: true,
-            r: 20,
-            tail: []
-        }
+        x: -200,
+        y: 200,
+        vy: -5,
+        move: true,
+        planet: true,
+        r: 20,
+        tail: []
+    },
+    {
+        x: 0,
+        y: -200,
+        vx: 5,
+        vy: 2,
+        move: true,
+        planet: true,
+        r: 20,
+        tail: []
+    },
+    {
+        x: 200,
+        y: 200,
+        vx: -5,
+        vy: 3,
+        move: true,
+        planet: true,
+        r: 20,
+        tail: []
+    }
     ],
     [{
-            x: 0,
-            y: 0,
-            move: true,
-            sol: true,
-            r: 60
-        },
-        {
-            x: 400,
-            y: 0,
-            vy: 11.05,
-            move: true,
-            planet: true,
-            r: 12,
-            tail: []
-        },
-        {
-            x: -400,
-            y: 0,
-            vy: -11.05,
-            move: true,
-            planet: true,
-            r: 12,
-            tail: []
-        }
+        x: 0,
+        y: 0,
+        move: true,
+        sol: true,
+        r: 60
+    },
+    {
+        x: 400,
+        y: 0,
+        vy: 11.05,
+        move: true,
+        planet: true,
+        r: 12,
+        tail: []
+    },
+    {
+        x: -400,
+        y: 0,
+        vy: -11.05,
+        move: true,
+        planet: true,
+        r: 12,
+        tail: []
+    }
     ],
     [{
-            x: 0,
-            y: 0,
-            move: true,
-            sol: true,
-            r: 60
-        },
-        {
-            x: -400,
-            y: 0,
-            vy: -10.49,
-            move: true,
-            planet: true,
-            r: 15
-        },
-        {
-            x: 400,
-            y: 0,
-            vy: 10.49,
-            move: true,
-            planet: true,
-            r: 15
-        },
-        {
-            x: 0,
-            y: 400,
-            vx: -10.49,
-            move: true,
-            planet: true,
-            r: 15
-        },
-        {
-            x: 0,
-            y: -400,
-            vx: 10.49,
-            move: true,
-            planet: true,
-            r: 15
-        }
+        x: 0,
+        y: 0,
+        move: true,
+        sol: true,
+        r: 60
+    },
+    {
+        x: -400,
+        y: 0,
+        vy: -10.49,
+        move: true,
+        planet: true,
+        r: 15
+    },
+    {
+        x: 400,
+        y: 0,
+        vy: 10.49,
+        move: true,
+        planet: true,
+        r: 15
+    },
+    {
+        x: 0,
+        y: 400,
+        vx: -10.49,
+        move: true,
+        planet: true,
+        r: 15
+    },
+    {
+        x: 0,
+        y: -400,
+        vx: 10.49,
+        move: true,
+        planet: true,
+        r: 15
+    }
     ]
 ];
 let objsMemoryIndex = 0;
@@ -180,6 +179,7 @@ function draw() {
     //Draw objs ------
 
     //planet atmosfera
+    noStroke()
     fill(200, 200, 255, 100);
     for (const obj of objs) {
         if (obj.planet && obj.r > 15) ellipse(obj.x, obj.y, obj.r * 2 * 2.5);

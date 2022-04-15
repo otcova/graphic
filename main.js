@@ -1,55 +1,30 @@
-const projects_info = [
-	{
-		name: "Atom",
-		description: "Graphical representations of sinosoudial waves.",
-	},
-	{
-		name: "Ant simulator",
-		description: "See how ants can organize using only two pheromones.",
-	},
-	{
-		name: "Memory",
-		description: "Test your memory with this game.",
-	},
-	{
-		name: "Pi Collisions",
-		description: "How many time do you think they will collide?",
-	},
-	{
-		name: "Gravity",
-		description: "Throw your meteors in a gravity simulator.",
-	},
-	{
-		name: "Irrational",
-		description: "You will never have two dots in the same angle.",
-	},
-	{
-		name: "Handmade",
-		description: "Drawing imperfect shapes with perfect calculations.",
-	},
-	{
-		name: "Non euclidean",
-		description: "How doen't like spherical space?",
-	},
-]
+import { projects_info } from "./project_info.js"
 
 const container = document.getElementById("window-container")
 
-for (project of projects_info) {
-	const project_window = create_div("window", container)
-	const project_url = "./" + project.name.toLowerCase().replaceAll(" ", "-")
-	project_window.onclick = () => location.href = project_url
-	project_window.style.backgroundImage = "url('" + project_url + "/capture.gif')"
+for (const project of projects_info) {
+	const project_path = "./" + project.name.toLowerCase().replaceAll(" ", "-")
+
+	const link = create_element("a", "", container)
+	link.href = project_path
+	const window_root = create_element("div", "window", link)
+	// window_root.onclick = () => location.href = project_path
 	
-	const header = create_div("header", project_window)
+	const text_continer = create_element("div", "text_continer" + project.text_class, window_root)
+	
+	const header = create_element("div", "header", text_continer)
 	header.innerText = project.name
+
+	const description = create_element("div", "text", text_continer)
+	description.innerText = project.description
 	
-	const text = create_div("text", project_window)
-	text.innerText = project.description
+	const canvas_container = create_element("div", "canvas-container", window_root)
+	import(project_path + "/window.js")
+		.then(({ draw_window }) => draw_window(canvas_container))
 }
 
-function create_div(className, parent) {
-	const div = document.createElement("div")
+function create_element(type, className, parent) {
+	const div = document.createElement(type)
 	div.className = className
 	parent?.appendChild(div)
 	return div
