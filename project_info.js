@@ -20,6 +20,11 @@ export const projects_info = [
 		description: "Throw your meteors in a gravity simulator.",
 	},
 	{
+		name: "Doppler Effect",
+		text_class: " darck",
+		description: "Sound waves representation.",
+	},
+	{
 		name: "Irrational",
 		text_class: " darck",
 		description: "Two dots will never share the same angle.",

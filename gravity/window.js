@@ -15,7 +15,7 @@ export function draw_window(parent) {
 			parent.style.background = "none"
 		}
 		g.draw = () => {
-			g.background(48)
+			g.background(40)
 			g.translate(g.width / 2, g.height / 2)
 
 			g.noStroke()

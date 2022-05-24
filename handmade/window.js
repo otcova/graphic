@@ -13,7 +13,7 @@ export function draw_window(parent) {
 		g.setup = () => {
 			let canvas = g.createCanvas(...get_parent_size())
 			canvas.parent(parent)
-			g.frameRate(8)
+			g.frameRate(4)
 			parent.style.background = "none"
 		}
 		g.draw = () => {
