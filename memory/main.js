@@ -95,6 +95,10 @@ function newLevel() {
     }
 }
 
+function mouseDragged() {
+    mousePressed();
+}
+
 function touchStarted() {
     if (!fullscreen()) {
         fullscreen(true);
@@ -144,7 +148,7 @@ function mousePressed() {
                                 setTimeout(newLevel, 1000);
                             }
                         }
-                    } else {
+                    } else if (matrix[X][y] != "error") {
                         matrix[x][y] = "error";
                         errorCount++;
                         if (errorCount >= 2) {
