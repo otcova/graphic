@@ -148,7 +148,7 @@ function mousePressed() {
                                 setTimeout(newLevel, 1000);
                             }
                         }
-                    } else if (matrix[X][y] != "error") {
+                    } else if (matrix[x][y] != "error") {
                         matrix[x][y] = "error";
                         errorCount++;
                         if (errorCount >= 2) {
