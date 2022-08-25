@@ -138,7 +138,7 @@ function mousePressed() {
 
         for (let x = 0; x < w; x++) {
             for (let y = 0; y < h; y++) {
-                if (overRect(tx + s * (x + 0.05 - w / 2), ty + s * (y + 0.1 - h / 2), s * 0.9, s * 0.9)) {
+                if (overRect(tx + s * (x + 0.1 - w / 2), ty + s * (y + 0.1 - h / 2), s * 0.8, s * 0.8)) {
                     if (matrixReal[x][y]) {
                         if (matrix[x][y] != true) {
                             matrix[x][y] = true;
