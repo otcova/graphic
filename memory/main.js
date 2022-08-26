@@ -47,7 +47,7 @@ function draw() {
             } else if (state == "pause" || state == "pauseclick") {
                 fill(100, 100, 120);
             }
-            rect(x + 0.05 - w / 2, y + 0.1 - h / 2, 0.9, 0.9, 0.2);
+            rect(x + 0.05 - w / 2, y + 0.05 - h / 2, 0.9, 0.9, 0.2);
         }
     }
 }
@@ -96,7 +96,8 @@ function newLevel() {
 }
 
 function mouseDragged() {
-    mousePressed();
+    if (state != "gameover")
+        mousePressed();
 }
 
 function touchStarted() {
@@ -134,11 +135,11 @@ function mousePressed() {
 
         let tx = width / 2;
         let ty = height * 0.6;
-        let s = min(width / w, height / (h + 1)) - 10;
+        let s = min(width / w, height / (h + 1.3)) - 10;
 
         for (let x = 0; x < w; x++) {
             for (let y = 0; y < h; y++) {
-                if (overRect(tx + s * (x + 0.1 - w / 2), ty + s * (y + 0.1 - h / 2), s * 0.8, s * 0.8)) {
+                if (overRect(tx + s * (x + 0.2 - w / 2), ty + s * (y + 0.2 - h / 2), s * 0.6, s * 0.6)) {
                     if (matrixReal[x][y]) {
                         if (matrix[x][y] != true) {
                             matrix[x][y] = true;
