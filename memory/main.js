@@ -71,8 +71,8 @@ function newLevel() {
     for (let x = 0; x < board_width; x++) {
         boardSquares.push(Array(board_height).fill(0).map(() => ({})));
     }
-
-    for (let i = 0; i < random(level + 2, 1.3 * level + 3); i++) {
+    
+    for (let i = 0; i < board_width * board_height / 2; i++) {
         const x = floor(random(0, board_width)), y = floor(random(0, board_height));
         if (!boardSquares[x][y].good) {
             boardSquares[x][y] = { good: true };
