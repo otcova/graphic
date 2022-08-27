@@ -18,7 +18,7 @@ const size = () => {
         w = board_height;
         h = board_width;
     }
-    return min(width / w, height / (h + 1.3)) - 10
+    return min(width / (w + .5), height / (h + 1.5))
 }
 
 function setup() {
@@ -54,7 +54,7 @@ function drawScore() {
     text(
         level,
         width / 2,
-        height * 0.6 - (0.6 + (width < height ? board_height / 2 : board_width / 2)) * size()
+        (height + size()) / 2 - (0.6 + (width < height ? board_height / 2 : board_width / 2)) * size()
     );
 }
 
@@ -176,8 +176,8 @@ function squareRect(x, y, margin, round) {
     }
 
     const offset_x = width / 2;
-    const offset_y = height * 0.6;
-    
+    const offset_y = (height + size()) / 2;
+
     const rect = [
         offset_x + size() * (x + margin / 2 - w / 2),
         offset_y + size() * (y + margin / 2 - h / 2),
