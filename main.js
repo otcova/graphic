@@ -1,30 +1,27 @@
-import { projects_info } from "./project_info.js"
+// import { projects_info } from "./project_list.js"
 
-const container = document.getElementById("window-container")
+let container = document.getElementById("thumbnail-container")
 
-for (const project of projects_info) {
-	const project_path = "./" + project.name.toLowerCase().replaceAll(" ", "-")
+for (let project of projects_info) {
+	let project_path = "./" + project.name.toLowerCase().replaceAll(" ", "-") + "/"
 
-	const link = create_element("a", "", container)
+  // Create Container
+	let link = create_element("a", "", container)
 	link.href = project_path
-	const window_root = create_element("div", "window", link)
-	// window_root.onclick = () => location.href = project_path
+	let thumbnail = create_element("div", "thumbnail", link)
 	
-	const text_continer = create_element("div", "text_continer" + project.text_class, window_root)
+  // Create Text
+	let text_continer = create_element("div", "text_continer " + project.text_class, thumbnail)
+	create_element("div", "header", text_continer).innerText = project.name
+	create_element("div", "text", text_continer).innerText = project.description
 	
-	const header = create_element("div", "header", text_continer)
-	header.innerText = project.name
-
-	const description = create_element("div", "text", text_continer)
-	description.innerText = project.description
-	
-	const canvas_container = create_element("div", "canvas-container", window_root)
-	import(project_path + "/window.js")
-		.then(({ draw_window }) => draw_window(canvas_container))
+  // Create Canvas
+	let canvas_container = create_element("div", "canvas-container", thumbnail)
+	import(project_path + "thumbnail.js").then(thumbnail => thumbnail.draw(canvas_container))
 }
 
 function create_element(type, className, parent) {
-	const div = document.createElement(type)
+	let div = document.createElement(type)
 	div.className = className
 	parent?.appendChild(div)
 	return div

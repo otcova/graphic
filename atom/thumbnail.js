@@ -1,4 +1,4 @@
-export function draw_window(parent) {
+export function draw(parent) {
 	const get_parent_size = () => [parent.offsetWidth, parent.offsetHeight]
 
 	new p5(g => {

@@ -14,7 +14,7 @@ body {
 	font-size: 1.3rem;
 }
 
-#window-container {
+#thumbnail-container {
 	display: flex;
 	gap: 40px;
 	margin-bottom: 40px;
@@ -22,7 +22,7 @@ body {
 	justify-content: center;
 }
 
-.window {
+.thumbnail {
 	width: calc(200px + 15vw);
 	height: calc(200px + 15vw);
 	cursor: pointer;

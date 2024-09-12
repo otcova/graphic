@@ -3,7 +3,7 @@ const hand = {
 	straightMax: 5
 }
 
-export function draw_window(parent) {
+export function draw(parent) {
 	const get_parent_size = () => {
 		const rect = parent.getBoundingClientRect()
 		return [Math.ceil(rect.width), Math.ceil(rect.height)]
