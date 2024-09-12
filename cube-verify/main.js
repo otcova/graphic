@@ -150,8 +150,11 @@ function drawCubeFace(pos, size, face_index) {
       let y = pos.y + stickers_positions[index_y]
 
       if (rect_pressed(x, y, sticker_size) && index != 4) {
-        cube[face_index][index] = selected_color
-        check_cube_errors()
+        if (cube[face_index][index] != selected_color) {
+          cube[face_index][index] = selected_color
+          check_cube_errors()
+          window.navigator?.vibrate(10)
+        }
       }
 
       if (cube[face_index][index] != COLORS.length - 1) {
