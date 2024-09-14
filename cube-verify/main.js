@@ -3,26 +3,28 @@ import { Cube } from "./cube.js"
 
 const APP_ID = "cube verify"
 
+const EMPTY_COLOR = [255, 100, 200]
 const COLORS = [
-  [255, 165, 0], [0, 0, 255], [255, 255, 255], [0, 255, 0], [255, 0, 0], [255, 255, 0], [255, 100, 200],
+  [255, 165, 0], [255, 255, 255], [0, 255, 0], [255, 255, 0], [255, 0, 0], [0, 0, 255],
 ]
+const ROUND = 5
 
-let flat_cube = new Cube(loadVariable(APP_ID, "cube state"))
-let [cube_errors, cube_errors_count] = flat_cube.check_errors()
-let selected_color = COLORS.length - 1
+let cube = new Cube(loadVariable(APP_ID, "cube state"))
+let [cube_errors, cube_errors_count] = cube.check_errors()
+let selected_color = null
 
-window.setup = function () {
+globalThis.setup = function () {
   createCanvas(windowWidth, windowHeight)
 }
 
-window.draw = function () {
+globalThis.draw = function () {
   background(20)
 
   if (width >= height) {
     let size = Math.min(height, width / 3)
     drawPalette(vec(width - size, (height - size) / 2), size)
 
-    drawCube(Math.min(height*1.3, width - size))
+    drawCube(Math.min(height * 1.3, width - size))
   } else if (height >= width) {
     let size = Math.min(width, height / 3)
     drawPalette(vec((width - size) / 2, height - size), size)
@@ -58,7 +60,7 @@ function drawPalette(pos, size) {
       else noStroke()
 
       fill(COLORS[index++])
-      rect(x, y, column_width, column_width, 2)
+      rect(x, y, column_width, column_width, ROUND)
     }
   }
 
@@ -66,19 +68,19 @@ function drawPalette(pos, size) {
   let y = pos.y + columns_pos[1] + (columns_pos[1] - columns_pos[0])
   let width = columns_pos[1] * 2 + column_width - columns_pos[0] * 2
   if (rect_pressed(x, y, width, column_width))
-    selected_color = index
+    selected_color = null
 
-  if (selected_color == index) {
+  if (selected_color == null) {
     strokeWeight(10)
-    stroke(inverse_color(COLORS[index]))
+    stroke(inverse_color(EMPTY_COLOR))
     noFill()
-    rect(x, y, width, column_width, 2)
+    rect(x, y, width, column_width, ROUND)
   }
 
-  stroke(COLORS[index])
+  stroke(EMPTY_COLOR)
   strokeWeight(4)
   noFill()
-  rect(x, y, width, column_width, 2)
+  rect(x, y, width, column_width, ROUND)
   cross(x + width / 2, y + column_width / 2, column_width / 3)
 }
 
@@ -105,42 +107,42 @@ function drawCubeFace(pos, size, face_index) {
       let y = pos.y + stickers_positions[index_y]
 
       if (rect_pressed(x, y, sticker_size) && index != 4) {
-        if (flat_cube.state[face_index][index] != selected_color) {
-          flat_cube.state[face_index][index] = selected_color
+        if (cube.state[face_index][index] != selected_color) {
+          cube.state[face_index][index] = selected_color
           updateCube()
         }
       }
 
-      if (flat_cube.state[face_index][index] != COLORS.length - 1) {
+      if (cube.state[face_index][index] != null) {
         noStroke()
-        fill(COLORS[flat_cube.state[face_index][index]])
+        fill(COLORS[cube.state[face_index][index]])
 
-        rect(x, y, sticker_size, sticker_size, 2)
+        rect(x, y, sticker_size, sticker_size, ROUND)
       } else {
         let strokeW = 1
 
         noFill()
-        stroke(COLORS[flat_cube.state[face_index][index]])
+        stroke(EMPTY_COLOR)
         strokeWeight(strokeW)
 
         let size = sticker_size - strokeW
-        rect(x+strokeW/2, y+strokeW/2, size, size, 2)
+        rect(x + strokeW / 2, y + strokeW / 2, size, size, ROUND)
       }
 
       if (cube_errors[face_index][index].sticker) {
         noStroke()
-        fill(COLORS[COLORS.length - 1])
+        fill(EMPTY_COLOR)
         ellipse(x + sticker_size / 2, y + sticker_size / 2, sticker_size * 0.4)
       }
       if (cube_errors[face_index][index].edge) {
         noStroke()
-        fill(COLORS[COLORS.length - 1])
+        fill(EMPTY_COLOR)
         let px = x + sticker_size / 2 + (index_x - 1) * sticker_size * 0.3
         let py = y + sticker_size / 2 + (index_y - 1) * sticker_size * 0.3
         let size = sticker_size * 0.4
         push()
         rectMode(CENTER);
-        rect(px, py, size, size, 2)
+        rect(px, py, size, size, ROUND)
         pop()
       }
 
@@ -154,12 +156,12 @@ function inverse_color(color) {
 }
 
 function updateCube() {
-  let [new_cube_errors, new_errors_count] = flat_cube.check_errors()
+  let [new_cube_errors, new_errors_count] = cube.check_errors()
 
-  window.navigator?.vibrate?.(cube_errors_count < new_errors_count? 50 : 20)
+  window.navigator?.vibrate?.(cube_errors_count < new_errors_count ? 50 : 20)
 
   cube_errors = new_cube_errors
   cube_errors_count = new_errors_count
 
-  saveVariable(APP_ID, "cube state", flat_cube.state)
+  saveVariable(APP_ID, "cube state", cube.state)
 }
