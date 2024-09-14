@@ -42,3 +42,13 @@ export function cross(x, y, size) {
   line(x - r, y - r, x + r, y + r)
   line(x - r, y + r, x + r, y - r)
 }
+
+export function loadVariable(app_id, variable_name, default_value) {
+  let stored = localStorage.getItem(app_id + '/' + variable_name)
+  if (stored) return JSON.parse(stored)
+  return default_value
+}
+
+export function saveVariable(app_id, variable_name, value) {
+  localStorage.setItem(app_id + '/' + variable_name, JSON.stringify(value))
+}

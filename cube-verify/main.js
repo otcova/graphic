@@ -1,60 +1,15 @@
-import { create_layout, cross, rect_pressed, vec } from "../utils.js"
+import { create_layout, cross, loadVariable, rect_pressed, saveVariable, vec } from "../utils.js"
+import { Cube } from "./cube.js"
+
+const APP_ID = "cube verify"
 
 const COLORS = [
   [255, 165, 0], [0, 0, 255], [255, 255, 255], [0, 255, 0], [255, 0, 0], [255, 255, 0], [255, 100, 200],
 ]
-const EDGES_INDEXES = [
-  [{face_index: 0, sticker_index: 1}, {face_index: 1, sticker_index: 3}],
-  [{face_index: 0, sticker_index: 5}, {face_index: 2, sticker_index: 3}],
-  [{face_index: 0, sticker_index: 7}, {face_index: 3, sticker_index: 3}],
-  [{face_index: 0, sticker_index: 3}, {face_index: 5, sticker_index: 5}],
 
-  [{face_index: 4, sticker_index: 1}, {face_index: 1, sticker_index: 5}],
-  [{face_index: 4, sticker_index: 3}, {face_index: 2, sticker_index: 5}],
-  [{face_index: 4, sticker_index: 7}, {face_index: 3, sticker_index: 5}],
-  [{face_index: 4, sticker_index: 5}, {face_index: 5, sticker_index: 3}],
-
-  [{face_index: 1, sticker_index: 7}, {face_index: 2, sticker_index: 1}],
-  [{face_index: 2, sticker_index: 7}, {face_index: 3, sticker_index: 1}],
-  [{face_index: 3, sticker_index: 7}, {face_index: 5, sticker_index: 7}],
-  [{face_index: 5, sticker_index: 1}, {face_index: 1, sticker_index: 1}],
-]
-const CORNERS_INDEXES = [
-  [{face_index: 0, sticker_index: 2}, {face_index: 1, sticker_index: 6}, {face_index: 2, sticker_index: 0}],
-  [{face_index: 0, sticker_index: 8}, {face_index: 2, sticker_index: 6}, {face_index: 3, sticker_index: 0}],
-  [{face_index: 0, sticker_index: 6}, {face_index: 3, sticker_index: 6}, {face_index: 5, sticker_index: 8}],
-  [{face_index: 0, sticker_index: 0}, {face_index: 5, sticker_index: 2}, {face_index: 1, sticker_index: 0}],
-
-  [{face_index: 4, sticker_index: 0}, {face_index: 2, sticker_index: 2}, {face_index: 1, sticker_index: 8}],
-  [{face_index: 4, sticker_index: 6}, {face_index: 3, sticker_index: 2}, {face_index: 2, sticker_index: 8}],
-  [{face_index: 4, sticker_index: 8}, {face_index: 5, sticker_index: 6}, {face_index: 3, sticker_index: 8}],
-  [{face_index: 4, sticker_index: 2}, {face_index: 1, sticker_index: 2}, {face_index: 5, sticker_index: 0}],
-]
-const POSIBLE_EDGES = [
-  "01", "02", "03", "05",
-  "41", "42", "43", "45",
-  "12", "23", "35", "51",
-]
-const POSIBLE_CORNERS = [
-  "012", "023", "035", "051",
-  "421", "432", "453", "415",
-]
-
+let flat_cube = new Cube(loadVariable(APP_ID, "cube state"))
+let [cube_errors, cube_errors_count] = flat_cube.check_errors()
 let selected_color = COLORS.length - 1
-
-let cube = [
-  [6,6,6,6,0,6,6,6,6],
-  [6,6,6,6,1,6,6,6,6],
-  [6,6,6,6,2,6,6,6,6],
-  [6,6,6,6,3,6,6,6,6],
-  [6,6,6,6,4,6,6,6,6],
-  [6,6,6,6,5,6,6,6,6],
-]
-window.cube = cube
-
-let cube_errors
-check_cube_errors()
-
 
 window.setup = function () {
   createCanvas(windowWidth, windowHeight)
@@ -150,23 +105,22 @@ function drawCubeFace(pos, size, face_index) {
       let y = pos.y + stickers_positions[index_y]
 
       if (rect_pressed(x, y, sticker_size) && index != 4) {
-        if (cube[face_index][index] != selected_color) {
-          cube[face_index][index] = selected_color
-          check_cube_errors()
-          window.navigator?.vibrate(10)
+        if (flat_cube.state[face_index][index] != selected_color) {
+          flat_cube.state[face_index][index] = selected_color
+          updateCube()
         }
       }
 
-      if (cube[face_index][index] != COLORS.length - 1) {
+      if (flat_cube.state[face_index][index] != COLORS.length - 1) {
         noStroke()
-        fill(COLORS[cube[face_index][index]])
+        fill(COLORS[flat_cube.state[face_index][index]])
 
         rect(x, y, sticker_size, sticker_size, 2)
       } else {
         let strokeW = 1
 
         noFill()
-        stroke(COLORS[cube[face_index][index]])
+        stroke(COLORS[flat_cube.state[face_index][index]])
         strokeWeight(strokeW)
 
         let size = sticker_size - strokeW
@@ -195,124 +149,17 @@ function drawCubeFace(pos, size, face_index) {
   }
 }
 
-function check_cube_errors() {
-  cube_errors = Array(cube.length).fill().map(() => Array(9).fill().map(() => {return{}}))
-  check_cube_count()
-  check_cube_pices(EDGES_INDEXES)
-  check_cube_pices(CORNERS_INDEXES)
-  check_incomplete_pices()
-}
-
-function check_incomplete_pices() {
-  // Can this incomplete corner pice exit?
-  for (const [a, b, c] of CORNERS_INDEXES) {
-    let a_has_color = cube[a.face_index][a.sticker_index] != COLORS.length - 1
-    let b_has_color = cube[b.face_index][b.sticker_index] != COLORS.length - 1
-    let c_has_color = cube[c.face_index][c.sticker_index] != COLORS.length - 1
-    if (a_has_color + b_has_color + c_has_color != 2)
-      continue
-
-    let colors = pice_colors([a, b, c])
-    let pice_exists = false;
-
-    for (let color = 0; color < COLORS.length - 1; ++color) {
-      let posible_colors = colors.replace(COLORS.length - 1, color)
-      if (pice_index(posible_colors) != null) pice_exists = true
-    }
-
-    if (!pice_exists)
-      [a, b, c].forEach(sticker => cube_errors[sticker.face_index][sticker.sticker_index].edge = true)
-  }
-}
-
-function check_cube_pices(set) {
-  let edge_count = Array(set.length).fill(0)
-
-  // Do pices exists?
-  for (const pice of set) {
-    if (pice.find(sticker => cube[sticker.face_index][sticker.sticker_index] == COLORS.length - 1))
-      continue
-
-    let edge_index = pice_index(pice_colors(pice))
-
-    if (edge_index == null) {
-      pice.forEach(sticker => cube_errors[sticker.face_index][sticker.sticker_index].edge = true)
-    } else {
-        ++edge_count[edge_index]
-    }
-  }
-
-  // Are the pices repeated?
-  for (const pice of set) {
-    let edge_index = pice_index(pice_colors(pice))
-    
-    if (edge_count[edge_index] > 1) {
-      pice.forEach(sticker => cube_errors[sticker.face_index][sticker.sticker_index].edge = true)
-    }
-  }
-}
-
-function check_cube_count() {
-  let corner_count = Array(COLORS.length).fill(0)
-  let edge_count = Array(COLORS.length).fill(0)
-
-  for (let face_index = 0; face_index < cube.length; ++face_index) {
-    ++corner_count[cube[face_index][0]]
-    ++corner_count[cube[face_index][2]]
-    ++corner_count[cube[face_index][6]]
-    ++corner_count[cube[face_index][8]]
-
-    ++edge_count[cube[face_index][1]]
-    ++edge_count[cube[face_index][3]]
-    ++edge_count[cube[face_index][5]]
-    ++edge_count[cube[face_index][7]]
-  }
-
-  corner_count[COLORS.length - 1] = 0
-  edge_count[COLORS.length - 1] = 0
-
-  for (let face_index = 0; face_index < cube.length; ++face_index) {
-    let check_count_error = (count, sticker_index) => {
-      if (count[cube[face_index][sticker_index]] > 4)
-        cube_errors[face_index][sticker_index].sticker = true
-    }
-
-    check_count_error(corner_count, 0)
-    check_count_error(corner_count, 2)
-    check_count_error(corner_count, 6)
-    check_count_error(corner_count, 8)
-
-    check_count_error(edge_count, 1)
-    check_count_error(edge_count, 3)
-    check_count_error(edge_count, 5)
-    check_count_error(edge_count, 7)
-  }
-}
-
-
 function inverse_color(color) {
   return color.map(c => 255 - c / 2)
 }
 
-function pice_rotations(pice) {
-  let rotations = Array(pice.length).fill()
-  rotations[0] = pice
-  for (let i = 1; i < pice.length; ++i)
-    rotations[i] = rotations[i - 1].at(-1) + rotations[i - 1].slice(0, -1)
-  return rotations
+function updateCube() {
+  let [new_cube_errors, new_errors_count] = flat_cube.check_errors()
+
+  window.navigator?.vibrate?.(cube_errors_count < new_errors_count? 50 : 20)
+
+  cube_errors = new_cube_errors
+  cube_errors_count = new_errors_count
+
+  saveVariable(APP_ID, "cube state", flat_cube.state)
 }
-
-function pice_colors(pice) {
-  return pice.map(sticker => cube[sticker.face_index][sticker.sticker_index]).join("")
-}
-
-function pice_index(pice_colors) {
-  let set = pice_colors.length == 2 ? POSIBLE_EDGES : POSIBLE_CORNERS
-  for (let edge_index = 0; edge_index < set.length; ++edge_index) {
-    if (pice_rotations(set[edge_index]).includes(pice_colors))
-      return edge_index
-  }
-  return null
-}
-
-
