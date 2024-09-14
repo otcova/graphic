@@ -1,17 +1,18 @@
-import { create_layout, cross, loadVariable, rect_pressed, saveVariable, vec } from "../utils.js"
+import { create_layout, shape, persistance, rect_pressed, vec, innerStrokeRect } from "../utils.js"
 import { Cube } from "./cube.js"
 
 const APP_ID = "cube verify"
 
+const LOCK_TOOL = "lock"
 const EMPTY_COLOR = [255, 100, 200]
 const COLORS = [
   [255, 165, 0], [255, 255, 255], [0, 255, 0], [255, 255, 0], [255, 0, 0], [0, 0, 255],
 ]
-const ROUND = 5
+const ROUND = 3
 
-let cube = new Cube(loadVariable(APP_ID, "cube state"))
+let cube = new Cube(persistance.loadVariable(APP_ID, "cube state"))
 let [cube_errors, cube_errors_count] = cube.check_errors()
-let selected_color = null
+let selected_tool = null
 
 globalThis.setup = function () {
   createCanvas(windowWidth, windowHeight)
@@ -24,7 +25,7 @@ globalThis.draw = function () {
     let size = Math.min(height, width / 3)
     drawPalette(vec(width - size, (height - size) / 2), size)
 
-    drawCube(Math.min(height * 1.3, width - size))
+    drawCube(Math.min(height * 1.3333, width - size))
   } else if (height >= width) {
     let size = Math.min(width, height / 3)
     drawPalette(vec((width - size) / 2, height - size), size)
@@ -54,9 +55,9 @@ function drawPalette(pos, size) {
       let x = pos.x + columns_pos[index_x]
       let y = pos.y + columns_pos[index_y]
       if (rect_pressed(x, y, column_width))
-        selected_color = index
+        selected_tool = index
 
-      if (selected_color == index) stroke(inverse_color(COLORS[index]))
+      if (selected_tool == index) stroke(inverse_color(COLORS[index]))
       else noStroke()
 
       fill(COLORS[index++])
@@ -64,24 +65,38 @@ function drawPalette(pos, size) {
     }
   }
 
-  let x = pos.x + columns_pos[0]
-  let y = pos.y + columns_pos[1] + (columns_pos[1] - columns_pos[0])
-  let width = columns_pos[1] * 2 + column_width - columns_pos[0] * 2
-  if (rect_pressed(x, y, width, column_width))
-    selected_color = null
+  // X Button
+  {
+    let x = pos.x + columns_pos[0]
+    let y = pos.y + columns_pos[2]
+    let width = column_width + columns_pos[1] - columns_pos[0]
 
-  if (selected_color == null) {
-    strokeWeight(10)
-    stroke(inverse_color(EMPTY_COLOR))
+    if (rect_pressed(x, y, width, column_width))
+      selected_tool = null
+
+    stroke(EMPTY_COLOR)
     noFill()
+    strokeWeight(selected_tool == null ? 10 : 4)
     rect(x, y, width, column_width, ROUND)
+    strokeWeight(4)
+    shape.cross(x + width / 2, y + column_width / 2, column_width * 0.3)
   }
 
-  stroke(EMPTY_COLOR)
-  strokeWeight(4)
-  noFill()
-  rect(x, y, width, column_width, ROUND)
-  cross(x + width / 2, y + column_width / 2, column_width / 3)
+  // Lock Button
+  {
+    let x = pos.x + columns_pos[2]
+    let y = pos.y + columns_pos[2]
+
+    if (rect_pressed(x, y, column_width, column_width))
+      selected_tool = LOCK_TOOL
+
+    stroke(200)
+    noFill()
+    strokeWeight(selected_tool == LOCK_TOOL ? 10 : 4)
+    rect(x, y, column_width, column_width, ROUND)
+    strokeWeight(column_width * 0.05)
+    shape.lock(x + column_width / 2, y + column_width / 2, column_width * 0.3)
+  }
 }
 
 function drawCube(size) {
@@ -107,15 +122,18 @@ function drawCubeFace(pos, size, face_index) {
       let y = pos.y + stickers_positions[index_y]
 
       if (rect_pressed(x, y, sticker_size) && index != 4) {
-        if (cube.state[face_index][index] != selected_color) {
-          cube.state[face_index][index] = selected_color
+        if (selected_tool == LOCK_TOOL) {
+          cube.lock(face_index, index)
+          updateCube()
+        } else {
+          cube.set_color(face_index, index, selected_tool)
           updateCube()
         }
       }
 
-      if (cube.state[face_index][index] != null) {
+      if (cube.get_color(face_index, index) != null) {
         noStroke()
-        fill(COLORS[cube.state[face_index][index]])
+        fill(COLORS[cube.get_color(face_index, index)])
 
         rect(x, y, sticker_size, sticker_size, ROUND)
       } else {
@@ -134,7 +152,7 @@ function drawCubeFace(pos, size, face_index) {
         fill(EMPTY_COLOR)
         ellipse(x + sticker_size / 2, y + sticker_size / 2, sticker_size * 0.4)
       }
-      if (cube_errors[face_index][index].edge) {
+      if (cube_errors[face_index][index].pice) {
         noStroke()
         fill(EMPTY_COLOR)
         let px = x + sticker_size / 2 + (index_x - 1) * sticker_size * 0.3
@@ -144,6 +162,14 @@ function drawCubeFace(pos, size, face_index) {
         rectMode(CENTER);
         rect(px, py, size, size, ROUND)
         pop()
+      }
+
+      if (cube.is_locked(face_index, index)) {
+        let weight = sticker_size * 0.15
+        stroke(150)
+        strokeWeight(weight)
+        noFill()
+        innerStrokeRect(x - 1, y - 1, sticker_size + 2, sticker_size + 2, ROUND / weight)
       }
 
       ++index
@@ -157,11 +183,12 @@ function inverse_color(color) {
 
 function updateCube() {
   let [new_cube_errors, new_errors_count] = cube.check_errors()
-
-  window.navigator?.vibrate?.(cube_errors_count < new_errors_count ? 50 : 20)
-
+  let more_errors = cube_errors_count < new_cube_errors
   cube_errors = new_cube_errors
   cube_errors_count = new_errors_count
 
-  saveVariable(APP_ID, "cube state", cube.state)
+  let state_changed = persistance.saveVariable(APP_ID, "cube state", cube.faces)
+
+  if (state_changed)
+    window.navigator?.vibrate?.(more_errors ? 50 : 10)
 }
