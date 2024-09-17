@@ -1,4 +1,4 @@
-const EMPTY_color = null
+const EMPTY_COLOR = null
 
 const FACES = 6
 
@@ -42,12 +42,14 @@ export class Cube {
 
     if (!this.faces) {
       this.faces = Array(FACES).fill()
-        .map(() => Array(9).fill().map(() => { return { color: null, locked: false } }))
+        .map(() => Array(9).fill().map(() => { return { color: null, locked: false, posibles: null } }))
 
       // Set Centers
-      for (let color = 0; color < FACES; ++color)
-        this.set_color(color, 4, color)
+      for (let face = 0; face < FACES; ++face)
+        this.faces[face][4].color = face
     }
+
+    this.#update();
   }
 
   lock(face_index, sticker_index) {
@@ -62,68 +64,76 @@ export class Cube {
   set_color(face_index, sticker_index, color) {
     let sticker = this.faces[face_index][sticker_index]
     if (color === null) sticker.locked = false
-    if (!sticker.locked) sticker.color = color
+    if (!sticker.locked) {
+      sticker.color = color
+      this.#update();
+    }
   }
 
   get_color(face_index, sticker_index) {
     return this.faces[face_index][sticker_index].color
   }
 
-  check_errors() {
-    let errors = Array(FACES).fill().map(() => Array(9).fill().map(() => { return {} }))
-    let error_count = 0
-    let set_error = (color, sticker_index, type) => {
-      errors[color][sticker_index][type] = true
-      ++error_count
-    }
-
-    this.#check_sticker_count(set_error, EDGES_INDEXES)
-    this.#check_sticker_count(set_error, CORNERS_INDEXES)
-    this.#check_cube_pices(set_error, EDGES_INDEXES)
-    this.#check_cube_pices(set_error, CORNERS_INDEXES)
-    this.#check_incomplete_pices(set_error)
-
-    return [errors, error_count]
+  get_posibles(face_index, sticker_index) {
+    return this.faces[face_index][sticker_index].posibles
   }
 
-  #check_incomplete_pices(set_error) {
-    // Can this incomplete corner pice exit?
-    for (const [a, b, c] of CORNERS_INDEXES) {
-      let a_has_color = this.get_color(a.color, a.sticker_index) != EMPTY_color
-      let b_has_color = this.get_color(b.color, b.sticker_index) != EMPTY_color
-      let c_has_color = this.get_color(c.color, c.sticker_index) != EMPTY_color
-      if (a_has_color + b_has_color + c_has_color != 2)
-        continue
-
-      let pice_exists = false;
-
-      for (let color = 0; color < FACES; ++color) {
-        let colors = this.#pice_colors([a ?? color, b ?? color, c ?? color])
-        if (this.#pice_index(colors) != null) pice_exists = true
-      }
-
-      if (!pice_exists) {
-        for (let sticker of [a, b, c])
-          set_error(sticker.color, sticker.sticker_index, "pice")
-      }
-    }
+  pice_has_error(face_index, sticker_index) {
+    return this.faces[face_index][sticker_index].pice_error
   }
 
-  #check_cube_pices(set_error, set) {
-    let edge_count = Array(set.length).fill(0)
+  #set_posibles(face_index, sticker_index, posibles) {
+    this.faces[face_index][sticker_index].posibles = posibles
+  }
+
+  #set_pice_error(face_index, sticker_index, error = true) {
+    this.faces[face_index][sticker_index].pice_error = error
+    if (error) ++this.error_count
+  }
+
+  #update() {
+    // Reset
+    this.error_count = 0
+    for (let face_index = 0; face_index < FACES; ++face_index) {
+      for (let sticker_index = 0; sticker_index < 9; ++sticker_index) {
+        this.#set_posibles(face_index, sticker_index, null)
+        this.#set_pice_error(face_index, sticker_index, false)
+      }
+    }
+
+    this.edge_colors = this.#count_colors(EDGES_INDEXES)
+    this.corner_colors = this.#count_colors(CORNERS_INDEXES)
+
+    this.#check_cube_pices(EDGES_INDEXES)
+    this.#check_cube_pices(CORNERS_INDEXES)
+  }
+
+  #count_colors(set) {
+    let count = Array(FACES).fill(0)
+    for (const pice of set) {
+      for (const { color: face, sticker_index } of pice) {
+        let color = this.get_color(face, sticker_index)
+        if (color !== null) ++count[color]
+      }
+    }
+    return count
+  }
+
+  #check_cube_pices(set) {
+    let pice_count = Array(set.length).fill(0)
 
     // Do pices exists?
     for (const pice of set) {
-      if (pice.find(sticker => this.get_color(sticker.color, sticker.sticker_index) == EMPTY_color))
+      if (pice.find(sticker => this.get_color(sticker.color, sticker.sticker_index) == EMPTY_COLOR))
         continue
 
-      let edge_index = this.#pice_index(this.#pice_colors(pice))
+      let pice_index = this.#pice_index(this.#pice_colors(pice))
 
-      if (edge_index == null) {
+      if (pice_index == null) {
         for (let sticker of pice)
-          set_error(sticker.color, sticker.sticker_index, "pice")
+          this.#set_pice_error(sticker.color, sticker.sticker_index)
       } else {
-        ++edge_count[edge_index]
+        ++pice_count[pice_index]
       }
     }
 
@@ -131,26 +141,48 @@ export class Cube {
     for (const pice of set) {
       let edge_index = this.#pice_index(this.#pice_colors(pice))
 
-      if (edge_count[edge_index] > 1) {
+      if (pice_count[edge_index] > 1) {
         for (let sticker of pice)
-          set_error(sticker.color, sticker.sticker_index, "pice")
+          this.#set_pice_error(sticker.color, sticker.sticker_index)
       }
+    }
+
+    // Check posibles
+    for (const pice of set) {
+      let pice_index = this.#pice_index(this.#pice_colors(pice))
+      if (pice_index !== null)
+        --pice_count[pice_index]
+
+      for (let i = 0; i < pice.length; ++i) {
+        let sticker_color = this.get_color(pice[i].color, pice[i].sticker_index)
+        if (sticker_color !== EMPTY_COLOR)
+          --this.#get_color_count(set)[sticker_color]
+
+        let posibles = []
+        for (let color = 0; color < FACES; ++color) {
+          if (this.#get_color_count(set)[color] >= 4)
+            continue
+
+          let colors = this.#pice_colors(pice, { [i]: color });
+          if (this.#posible_pice_indexes(set, colors).some(pice_index => pice_count[pice_index] == 0))
+            posibles.push(color)
+        }
+
+        this.#set_posibles(pice[i].color, pice[i].sticker_index, posibles)
+
+        if (sticker_color !== EMPTY_COLOR)
+          ++this.#get_color_count(set)[sticker_color]
+      }
+
+      if (pice_index !== null)
+        ++pice_count[pice_index]
     }
   }
 
-  #check_sticker_count(set_error, set) {
-    let count = Array(FACES).fill(0)
-    for (let pice of set) {
-      for (let { color, sticker_index } of pice)
-        ++count[this.get_color(color, sticker_index)]
-    }
-
-    for (let pice of set) {
-      for (let { color, sticker_index } of pice) {
-        if (count[this.get_color(color, sticker_index)] > 4)
-          set_error(color, sticker_index, "sticker")
-      }
-    }
+  #get_color_count(set) {
+    if (set === EDGES_INDEXES) return this.edge_colors
+    if (set === CORNERS_INDEXES) return this.corner_colors
+    throw "WTF!"
   }
 
   #pice_rotations(pice) {
@@ -161,6 +193,23 @@ export class Cube {
     return rotations
   }
 
+  #posible_pice_indexes(set, pice_colors) {
+    if (pice_colors.includes("?")) {
+      let posible_indexes = []
+      for (let color = 0; color < FACES; ++color) {
+        if (this.#get_color_count(set)[color] >= 4)
+          continue
+
+        posible_indexes.push(...this.#posible_pice_indexes(set, pice_colors.replace("?", color)));
+      }
+      return posible_indexes
+    }
+
+    let index = this.#pice_index(pice_colors);
+    if (index === null) return []
+    return [index]
+  }
+
   #pice_index(pice_colors) {
     let set = pice_colors.length == 2 ? POSIBLE_EDGES : POSIBLE_CORNERS
     for (let edge_index = 0; edge_index < set.length; ++edge_index) {
@@ -169,7 +218,8 @@ export class Cube {
     }
     return null
   }
-  #pice_colors(pice) {
-    return pice.map(sticker => this.get_color(sticker.color, sticker.sticker_index)).join("")
+  #pice_colors(pice, exceptions = []) {
+    return pice.map((sticker, index) =>
+      exceptions[index] ?? this.get_color(sticker.color, sticker.sticker_index) ?? "?").join("")
   }
 }

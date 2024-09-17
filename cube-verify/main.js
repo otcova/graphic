@@ -11,11 +11,12 @@ const COLORS = [
 const ROUND = 3
 
 let cube = new Cube(persistance.loadVariable(APP_ID, "cube state"))
-let [cube_errors, cube_errors_count] = cube.check_errors()
+let past_error_count = cube.error_count
 let selected_tool = null
 
 globalThis.setup = function () {
   createCanvas(windowWidth, windowHeight)
+  frameRate(20)
 }
 
 globalThis.draw = function () {
@@ -121,6 +122,8 @@ function drawCubeFace(pos, size, face_index) {
       let x = pos.x + stickers_positions[index_x]
       let y = pos.y + stickers_positions[index_y]
 
+      let sticker_color_index = cube.get_color(face_index, index)
+
       if (rect_pressed(x, y, sticker_size) && index != 4) {
         if (selected_tool == LOCK_TOOL) {
           cube.lock(face_index, index)
@@ -131,9 +134,9 @@ function drawCubeFace(pos, size, face_index) {
         }
       }
 
-      if (cube.get_color(face_index, index) != null) {
+      if (sticker_color_index != null) {
         noStroke()
-        fill(COLORS[cube.get_color(face_index, index)])
+        fill(COLORS[sticker_color_index])
 
         rect(x, y, sticker_size, sticker_size, ROUND)
       } else {
@@ -147,12 +150,12 @@ function drawCubeFace(pos, size, face_index) {
         rect(x + strokeW / 2, y + strokeW / 2, size, size, ROUND)
       }
 
-      if (cube_errors[face_index][index].sticker) {
-        noStroke()
-        fill(EMPTY_COLOR)
-        ellipse(x + sticker_size / 2, y + sticker_size / 2, sticker_size * 0.4)
-      }
-      if (cube_errors[face_index][index].pice) {
+      /*if (cube.ge[face_index][index].sticker) {
+        stroke(EMPTY_COLOR)
+        strokeWeight(sticker_size * 0.1)
+        shape.cross(x + sticker_size / 2, y + sticker_size / 2, sticker_size * 0.3)
+      }*/
+      if (cube.pice_has_error(face_index, index)) {
         noStroke()
         fill(EMPTY_COLOR)
         let px = x + sticker_size / 2 + (index_x - 1) * sticker_size * 0.3
@@ -162,6 +165,33 @@ function drawCubeFace(pos, size, face_index) {
         rectMode(CENTER);
         rect(px, py, size, size, ROUND)
         pop()
+      }
+
+      let posibles = cube.get_posibles(face_index, index)
+      if (posibles) {
+        if (posibles.length == 0) {
+          stroke(EMPTY_COLOR)
+          strokeWeight(sticker_size * 0.1)
+          shape.cross(x + sticker_size / 2, y + sticker_size / 2, sticker_size * 0.3)
+        } else if (posibles.length < COLORS.length) {
+          if (sticker_color_index !== null && !posibles.includes(sticker_color_index)) {
+            stroke(EMPTY_COLOR)
+            strokeWeight(sticker_size * 0.1)
+          } else {
+            noStroke()
+          }
+
+          let arc_colors = posibles.filter(c => c !== sticker_color_index)
+          let size = sticker_size * 0.5
+          let angle = 0
+          let step = PI * 2 / arc_colors.length
+
+          for (let color of arc_colors) {
+            fill(COLORS[color])
+            arc(x + sticker_size / 2, y + sticker_size / 2, size, size, angle, angle + step)
+            angle += step
+          }
+        }
       }
 
       if (cube.is_locked(face_index, index)) {
@@ -182,13 +212,9 @@ function inverse_color(color) {
 }
 
 function updateCube() {
-  let [new_cube_errors, new_errors_count] = cube.check_errors()
-  let more_errors = cube_errors_count < new_cube_errors
-  cube_errors = new_cube_errors
-  cube_errors_count = new_errors_count
-
   let state_changed = persistance.saveVariable(APP_ID, "cube state", cube.faces)
 
   if (state_changed)
-    window.navigator?.vibrate?.(more_errors ? 50 : 10)
+    window.navigator?.vibrate?.(past_error_count < cube.error_count ? 50 : 10)
+  past_error_count = cube.error_count
 }
