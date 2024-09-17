@@ -38,18 +38,35 @@ const POSIBLE_CORNERS =
 
 export class Cube {
   constructor(state) {
-    this.faces = state
+    this.faces = Array(FACES).fill()
+      .map(() => Array(9).fill().map(() => { return { color: EMPTY_COLOR, locked: false, posibles: null } }))
+    // Set Centers
+    for (let face = 0; face < FACES; ++face)
+      this.faces[face][4].color = face
 
-    if (!this.faces) {
-      this.faces = Array(FACES).fill()
-        .map(() => Array(9).fill().map(() => { return { color: null, locked: false, posibles: null } }))
-
-      // Set Centers
-      for (let face = 0; face < FACES; ++face)
-        this.faces[face][4].color = face
+    if (typeof state == "string" && state.length == FACES * 8) {
+      let index = 0;
+      for (let face_index = 0; face_index < FACES; ++face_index) {
+        for (let sticker_index = 0; sticker_index < 9; ++sticker_index) {
+          if (sticker_index == 4) continue
+          let color = Number(state[index++])
+          if (Number.isInteger(color) && 0 <= color && color < FACES)
+            this.faces[face_index][sticker_index].color = color
+        }
+      }
     }
 
     this.#update();
+  }
+
+  as_string() {
+    let state = ""
+    for (let face_index = 0; face_index < FACES; ++face_index) {
+      for (let sticker_index = 0; sticker_index < 9; ++sticker_index) {
+        if (sticker_index != 4) state += this.get_color(face_index, sticker_index) ?? "?"
+      }
+    }
+    return state
   }
 
   lock(face_index, sticker_index) {
