@@ -1,14 +1,6 @@
 import { create_layout, shape, persistance, rect_pressed, vec, innerStrokeRect } from "../utils.js"
 import { Cube } from "./cube.js"
 
-window.cube_solver
-async function load_cube_solver() {
-  let wasm_file = fetch("./solver/target/wasm32-unknown-unknown/release/solver.wasm")
-  let wasm_module = await WebAssembly.instantiateStreaming(wasm_file);
-  window.cube_solver = wasm_module.instance.exports;
-}
-load_cube_solver();
-
 const APP_ID = "cube verify"
 
 const LOCK_TOOL = "lock"
